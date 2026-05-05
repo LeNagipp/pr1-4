@@ -1,32 +1,30 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from .models import Article
+from django.shortcuts import render, get_object_or_404
 
 #словник з данними
-POSTS = [
-    {'id': 1, 'title': 'Вступ до Django', 'content': '...', 'category': 'python', 'author': 'іван',
-     'date': '2025-01-15'},
-    {'id': 2, 'title': 'Основи Python', 'content': '...', 'category': 'python', 'author': 'марія',
-     'date': '2025-01-10'},
-    {'id': 3, 'title': 'HTML та CSS', 'content': '...', 'category': 'web', 'author': 'петро', 'date': '2025-01-20'},
-]
+# POSTS = [
+#     {'id': 1, 'title': 'Вступ до Django', 'content': '...', 'category': 'python', 'author': 'іван',
+#      'date': '2025-01-15'},
+#     {'id': 2, 'title': 'Основи Python', 'content': '...', 'category': 'python', 'author': 'марія',
+#      'date': '2025-01-10'},
+#     {'id': 3, 'title': 'HTML та CSS', 'content': '...', 'category': 'web', 'author': 'петро', 'date': '2025-01-20'},
+# ]
 
 
-COMMENTS = [
-    {'post_id': 1, 'author': 'Олексій', 'text': 'Дуже корисно!'},
-]
+COMMENTS = []
 
 
 def index(request):
-    return render(request, 'blog/index.html', {'posts': POSTS})
+    return render(request, 'blog/index.html', {'posts': Article.objects.all().order_by('-created_at')})
 
 
 def post_detail(request, post_id):
-    post = next(filter(lambda p: p['id'] == post_id, POSTS), None)
-
+    post = get_object_or_404(Article, id=post_id)
     if post is None:
         return render(request, 'blog/404.html', status=404)
 
-    post_comments = list(filter(lambda c: c['post_id'] == post_id, COMMENTS))
-
+    post_comments = [c for c in COMMENTS if c['id'] == post_id]
     return render(request, 'blog/post_detail.html', {
         'post': post,
         'comments': post_comments,
@@ -34,7 +32,7 @@ def post_detail(request, post_id):
 
 
 def category_posts(request, category_name):
-    posts = list(filter(lambda p: p['category'] == category_name, POSTS))
+    posts = Article.objects.filter(category=category_name)
     return render(request, 'blog/category.html', {
         'category_name': category_name,
         'posts': posts,
